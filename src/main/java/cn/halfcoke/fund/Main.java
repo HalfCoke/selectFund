@@ -1,14 +1,19 @@
 package cn.halfcoke.fund;
 
-import cn.halfcoke.fund.apis.TianTianAPI;
-
+import cn.halfcoke.fund.apis.TianTianApi;
 import java.io.FileWriter;
 
+/**
+ * 测试功能使用main.
+ */
 public class Main {
-    public static void main(String[] args) throws Exception {
+  /**
+   * 功能测试使用.
+   */
+  public static void main(String[] args) throws Exception {
 
-        try (FileWriter fileWriter = new FileWriter("./fundManagerList.json")) {
-            fileWriter.write(TianTianAPI.getFundManagerList());
-        }
+    try (FileWriter fileWriter = new FileWriter("./fundList.json")) {
+      fileWriter.write(TianTianApi.getFundList());
     }
+  }
 }

@@ -1,79 +1,86 @@
 package cn.halfcoke.fund.basic;
 
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+/**
+ * 基金经理人对象.
+ */
 public class FundManager {
-    private String name;
-    private String id;
-    private Integer workingDay;
-    private String totalAssetSize;
-    private String company;
-    private String companyID;
-    private List<Fund> currentOperatingFunds;
+  private String name;
+  private String id;
+  private Integer workingDay;
+  private String totalAssetSize;
+  private String company;
+  private String companyId;
+  private List<Fund> currentOperatingFunds;
 
-    public FundManager(String name, String id, Integer workingDay, String totalAssetSize, String company, String companyID) {
-        this(name, id, workingDay, totalAssetSize, company, companyID, new LinkedList<>());
-    }
+  public FundManager(String name, String id, Integer workingDay, String totalAssetSize,
+                     String company, String companyId) {
+    this(name, id, workingDay, totalAssetSize, company, companyId, new LinkedList<>());
+  }
 
-    public FundManager(String name, String id, Integer workingDay, String totalAssetSize, String company, String companyID, List<Fund> currentOperatingFunds) {
-        this.name = name;
-        this.id = id;
-        this.workingDay = workingDay;
-        this.totalAssetSize = totalAssetSize;
-        this.company = company;
-        this.companyID = companyID;
-        this.currentOperatingFunds = currentOperatingFunds;
-    }
+  /**
+   * 构造函数.
+   */
+  public FundManager(String name, String id, Integer workingDay, String totalAssetSize,
+                     String company, String companyId, List<Fund> currentOperatingFunds) {
+    this.name = name;
+    this.id = id;
+    this.workingDay = workingDay;
+    this.totalAssetSize = totalAssetSize;
+    this.company = company;
+    this.companyId = companyId;
+    this.currentOperatingFunds = currentOperatingFunds;
+  }
 
-    public void addFund(Fund fund) {
-        checkNotNull(fund);
-        this.currentOperatingFunds.add(fund);
-    }
+  public void addFund(Fund fund) {
+    checkNotNull(fund);
+    this.currentOperatingFunds.add(fund);
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public Integer getWorkingDay() {
-        return workingDay;
-    }
+  public Integer getWorkingDay() {
+    return workingDay;
+  }
 
-    public String getTotalAssetSize() {
-        return totalAssetSize;
-    }
+  public String getTotalAssetSize() {
+    return totalAssetSize;
+  }
 
-    public String getCompany() {
-        return company;
-    }
+  public String getCompany() {
+    return company;
+  }
 
-    public String getCompanyID() {
-        return companyID;
-    }
+  public String getCompanyId() {
+    return companyId;
+  }
 
-    public List<Fund> getCurrentOperatingFunds() {
-        return currentOperatingFunds;
-    }
+  public List<Fund> getCurrentOperatingFunds() {
+    return currentOperatingFunds;
+  }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("name", name)
-                .add("id", id)
-                .add("workingDay", workingDay)
-                .add("totalAssetSize", totalAssetSize)
-                .add("company", company)
-                .add("companyID", companyID)
-                .add("currentOperatingFunds", currentOperatingFunds)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("id", id)
+        .add("workingDay", workingDay)
+        .add("totalAssetSize", totalAssetSize)
+        .add("company", company)
+        .add("companyID", companyId)
+        .add("currentOperatingFunds", currentOperatingFunds)
+        .toString();
+  }
 }

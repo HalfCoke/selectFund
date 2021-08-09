@@ -1,3 +1,5 @@
 /fundManagerList.json
 /target/
 /.idea/
+*.iml
+/fundList.json
