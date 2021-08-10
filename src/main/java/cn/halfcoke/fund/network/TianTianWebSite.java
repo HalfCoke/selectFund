@@ -6,24 +6,39 @@ import cn.halfcoke.fund.network.protocol.FundListResponse;
 import cn.halfcoke.fund.network.protocol.FundManagerListResponse;
 import cn.halfcoke.fund.network.utils.ResponseUtilsFactory;
 import com.google.common.base.Strings;
-import com.google.common.primitives.Floats;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 天天基金API数据获取.
  */
 public class TianTianWebSite implements AutoCloseable {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TianTianWebSite.class);
+  public static final String[] GROWTH_RATE_PERIODS =
+      new String[] {"今年来", "近1周", "近1月", "近3月", "近6月", "近1年", "近2年", "近3年", "近5年"};
+
   private static final String HTTP_BASIC_URL = "http://fund.eastmoney.com";
+
   private final HashMap<Class, Integer> responseStringParseMap;
 
   private final Gson gson;
   private final ApacheHttpRequest httpRequest;
+
+  private final Pattern establishDatePattern;
+  private final Pattern assetPattern;
+  private final Map<String, Pattern> growthRatePatternMap;
 
   /**
    * 构造函数.
@@ -35,6 +50,15 @@ public class TianTianWebSite implements AutoCloseable {
     responseStringParseMap = new HashMap<>();
     responseStringParseMap.put(FundListResponse.class, 14);
     responseStringParseMap.put(FundManagerListResponse.class, 9);
+
+    establishDatePattern = Pattern.compile("成立日期：<span>(\\d\\d\\d\\d-\\d\\d-\\d\\d)</span>");
+    assetPattern = Pattern.compile("资产规模：<span>\\s*(.*)亿元");
+    growthRatePatternMap = new HashMap<>();
+
+    for (String period : GROWTH_RATE_PERIODS) {
+      growthRatePatternMap.put(period, Pattern.compile(
+          String.format("<li class='title'>%s</li><li class='.*?'>(.*?)</li>", period)));
+    }
   }
 
   /**
@@ -73,6 +97,12 @@ public class TianTianWebSite implements AutoCloseable {
    * @return 返回全部公募基金列表
    */
   public List<Fund> getFundList() throws Exception {
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    LocalDateTime nowDateTime = LocalDateTime.now();
+    LocalDateTime dateTime = LocalDateTime.of(nowDateTime.getYear() - 5, nowDateTime.getMonth(),
+        nowDateTime.getDayOfMonth(),
+        nowDateTime.getHour(), nowDateTime.getMinute());
+
     URIBuilder uriBuilder = new URIBuilder(HTTP_BASIC_URL + "/data/rankhandler.aspx")
         .setParameter("op", "ph")
         .setParameter("dt", "kf")
@@ -86,6 +116,8 @@ public class TianTianWebSite implements AutoCloseable {
         .setParameter("pi", "1")
         .setParameter("pn", "50")
         .setParameter("v", "0.5176398040170527")
+        .setParameter("sd", timeFormatter.format(dateTime))
+        .setParameter("ed", timeFormatter.format(nowDateTime))
         .setParameter("dx", "1");
     List<Fund> funds = new LinkedList<>();
     int pages = getPageCount(uriBuilder, FundListResponse.class);
@@ -99,6 +131,30 @@ public class TianTianWebSite implements AutoCloseable {
       funds.addAll(list);
     }
     return funds;
+  }
+
+  /**
+   * 补充基金中的资金规模及创建日期字段.
+   */
+  public void addFundInformation(Fund fund) throws Exception {
+    final URIBuilder uriBuilder =
+        new URIBuilder("http://fundf10.eastmoney.com/jdzf_" + fund.getFundCode() + ".html");
+    final String htmlContent = httpRequest.get(uriBuilder);
+
+    Matcher dateMatcher = establishDatePattern.matcher(htmlContent);
+    String establishDate = "2021-08-10";
+    if (dateMatcher.find()) {
+      establishDate = dateMatcher.group(1);
+    }
+
+    Matcher assetMatcher = assetPattern.matcher(htmlContent);
+    String assetSize = "0";
+    if (assetMatcher.find()) {
+      assetSize = assetMatcher.group(1);
+    }
+    fund.setAssetSize(Float.parseFloat(assetSize));
+    fund.setEstablishDate(establishDate);
+    LOGGER.info("After Add: " + fund);
   }
 
   // ----------------------------------------------------------------------------------------------
@@ -138,13 +194,24 @@ public class TianTianWebSite implements AutoCloseable {
     float threeYearGrowthRate = parseFloatString(split[13]);
     float curYearGrowthRate = parseFloatString(split[14]);
     float establishGrowthRate = parseFloatString(split[15]);
+    float fiveYearGrowthRate = parseFloatString(split[18]);
 
-    return new Fund(fundCode,
+    return new Fund(
+        fundCode,
         fundName,
         nav,
-        totalNav, dayGrowthRate, weekGrowthRate, monthGrowthRate, threeMonthGrowthRate,
-        sixMonthGrowthRate, yearGrowthRate, twoYearGrowthRate, threeYearGrowthRate,
-        curYearGrowthRate, establishGrowthRate);
+        totalNav,
+        dayGrowthRate,
+        weekGrowthRate,
+        monthGrowthRate,
+        threeMonthGrowthRate,
+        sixMonthGrowthRate,
+        yearGrowthRate,
+        twoYearGrowthRate,
+        threeYearGrowthRate,
+        curYearGrowthRate,
+        establishGrowthRate,
+        fiveYearGrowthRate);
   }
 
   private <T> int getPageCount(URIBuilder uriBuilder, Class<T> clazz) throws Exception {
@@ -161,6 +228,13 @@ public class TianTianWebSite implements AutoCloseable {
   private float parseFloatString(String str) {
     return Float.parseFloat(Strings.isNullOrEmpty(str) ? "0" : str);
 
+  }
+
+  private String matchRegexGrowthRate(String period, String htmlContent) {
+    Pattern pattern = growthRatePatternMap.get(period);
+    Matcher matcher = pattern.matcher(htmlContent);
+    matcher.find();
+    return matcher.group(1);
   }
 
   @Override

@@ -4,6 +4,7 @@ package cn.halfcoke.fund.basic;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -82,5 +83,29 @@ public class FundManager {
         .add("companyID", companyId)
         .add("currentOperatingFunds", currentOperatingFunds)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof FundManager)) {
+      return false;
+    }
+    FundManager that = (FundManager) o;
+    return Objects.equal(name, that.name)
+        && Objects.equal(id, that.id)
+        && Objects.equal(workingDay, that.workingDay)
+        && Objects.equal(totalAssetSize, that.totalAssetSize)
+        && Objects.equal(company, that.company)
+        && Objects.equal(companyId, that.companyId)
+        && Objects.equal(currentOperatingFunds, that.currentOperatingFunds);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(name, id, workingDay, totalAssetSize, company, companyId,
+        currentOperatingFunds);
   }
 }

@@ -19,7 +19,7 @@ public class ApacheHttpRequest implements AutoCloseable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ApacheHttpRequest.class);
 
-  private CloseableHttpClient httpClient;
+  private final CloseableHttpClient httpClient;
 
   ApacheHttpRequest() {
     httpClient = HttpClients.createDefault();
