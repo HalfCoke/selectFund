@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class Main {
    * 功能测试使用.
    */
   public static void main(String[] args) throws Exception {
-//    new Main().demo();
+    new Main().demo();
     try (final FileReader fileReader = new FileReader("./res.json");
          final FileWriter fileWriter = new FileWriter("./sortedRes.json")) {
       Scanner scanner = new Scanner(fileReader);

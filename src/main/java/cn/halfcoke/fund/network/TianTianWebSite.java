@@ -10,13 +10,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 天天基金API数据获取.
  */
+@Slf4j
 public class TianTianWebSite implements AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(TianTianWebSite.class);
   public static final String[] GROWTH_RATE_PERIODS =
@@ -127,6 +132,7 @@ public class TianTianWebSite implements AutoCloseable {
           parseResponseStringToJson(content, FundListResponse.class);
       List<Fund> list = fundListResponse.getDatas().stream()
           .map(this::parseFund)
+          .filter(Objects::nonNull)
           .collect(Collectors.toList());
       funds.addAll(list);
     }
@@ -179,39 +185,45 @@ public class TianTianWebSite implements AutoCloseable {
   }
 
   private Fund parseFund(String fundString) {
-    String[] split = fundString.split(",");
-    String fundCode = split[0];
-    String fundName = split[1];
-    float nav = parseFloatString(split[4]);
-    float totalNav = parseFloatString(split[5]);
-    float dayGrowthRate = parseFloatString(split[6]);
-    float weekGrowthRate = parseFloatString(split[7]);
-    float monthGrowthRate = parseFloatString(split[8]);
-    float threeMonthGrowthRate = parseFloatString(split[9]);
-    float sixMonthGrowthRate = parseFloatString(split[10]);
-    float yearGrowthRate = parseFloatString(split[11]);
-    float twoYearGrowthRate = parseFloatString(split[12]);
-    float threeYearGrowthRate = parseFloatString(split[13]);
-    float curYearGrowthRate = parseFloatString(split[14]);
-    float establishGrowthRate = parseFloatString(split[15]);
-    float fiveYearGrowthRate = parseFloatString(split[18]);
+    try{
+      String[] split = fundString.split(",");
+      log.info(Arrays.toString(split));
+      String fundCode = split[0];
+      String fundName = split[1];
+      float nav = parseFloatString(split[4]);
+      float totalNav = parseFloatString(split[5]);
+      float dayGrowthRate = parseFloatString(split[6]);
+      float weekGrowthRate = parseFloatString(split[7]);
+      float monthGrowthRate = parseFloatString(split[8]);
+      float threeMonthGrowthRate = parseFloatString(split[9]);
+      float sixMonthGrowthRate = parseFloatString(split[10]);
+      float yearGrowthRate = parseFloatString(split[11]);
+      float twoYearGrowthRate = parseFloatString(split[12]);
+      float threeYearGrowthRate = parseFloatString(split[13]);
+      float curYearGrowthRate = parseFloatString(split[14]);
+      float establishGrowthRate = parseFloatString(split[15]);
+      float fiveYearGrowthRate = parseFloatString(split[18]);
 
-    return new Fund(
-        fundCode,
-        fundName,
-        nav,
-        totalNav,
-        dayGrowthRate,
-        weekGrowthRate,
-        monthGrowthRate,
-        threeMonthGrowthRate,
-        sixMonthGrowthRate,
-        yearGrowthRate,
-        twoYearGrowthRate,
-        threeYearGrowthRate,
-        curYearGrowthRate,
-        establishGrowthRate,
-        fiveYearGrowthRate);
+      return new Fund(
+          fundCode,
+          fundName,
+          nav,
+          totalNav,
+          dayGrowthRate,
+          weekGrowthRate,
+          monthGrowthRate,
+          threeMonthGrowthRate,
+          sixMonthGrowthRate,
+          yearGrowthRate,
+          twoYearGrowthRate,
+          threeYearGrowthRate,
+          curYearGrowthRate,
+          establishGrowthRate,
+          fiveYearGrowthRate);
+    }catch (Exception ignored){
+      return null;
+    }
+
   }
 
   private <T> int getPageCount(URIBuilder uriBuilder, Class<T> clazz) throws Exception {
