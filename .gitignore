@@ -1,9 +1,6 @@
-/fundManagerList.json
+
 /target/
 /.idea/
 *.iml
-/fundList.json
-/totalManagers.json
-/res.json
 /logs/
-/sortedRes.json
+
